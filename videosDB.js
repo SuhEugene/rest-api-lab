@@ -9,7 +9,7 @@ const getAllVideosQuery = db.prepare(`
   ORDER BY videos.upload_date DESC
 `);
 const findVideoQuery = db.prepare(`
-  SELECT videos.*, authors.*
+  SELECT videos.*, authors.username, authors.status
   FROM videos
   JOIN authors ON videos.author_id = authors.id
   WHERE videos.id = ?
@@ -22,7 +22,7 @@ class VideosDB {
   static schema = z.object({
     author: z.int().min(1),
     description: z.string().min(1).max(128).optional().default(null),
-    url: z.url().min(10).max(128),
+    url: z.string().min(10).max(128),
   });
   static getAll = () => getAllVideosQuery.all();
   static getOne = (id) => findVideoQuery.get(id);

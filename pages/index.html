@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Videos</title>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <div id="video-container">
+    <div id="videoplayer">
+      <video id="video" loop></video>
+      <div class="video-info">
+        <div id="video-title"></div>
+        <div id="video-date"></div>
+        <div class="author">
+          <div id="video-author"></div>
+          <div id="video-author-status"></div>
+        </div>
+        <div id="video-actions">
+          <button id="video-edit">ред.</button>
+          <button id="video-delete">уд.</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="videos">
+
+  </div>
+  <a class="btn" href="/videos/new" style="margin: 2rem auto;display:block;width: max-content;">Добавить видео</a>
+  <script>
+    let selectedVideoId = null;
+
+    async function getVideos() {
+      const response = await fetch('/api/videos');
+      const videos = await response.json();
+      return videos;
+    }
+
+    async function getVideo(id) {
+      const response = await fetch(`/api/videos/${id}`);
+      const video = await response.json();
+      return video;
+    }
+
+    async function deleteVideo(id) {
+      const response = await fetch(`/api/videos/${id}`, {
+        method: 'DELETE'
+      });
+      const data = await response.json();
+      if (data.success) {
+        updateVideos();
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function editVideo(id) {
+      window.location.assign(`/videos/${id}`);
+    }
+
+    async function playVideo(videoId) {
+      selectedVideoId = videoId;
+      const video = await getVideo(videoId);
+      if (video.id !== selectedVideoId) return;
+
+      const videoPlayer = document.querySelector('#video');
+      videoPlayer.src = video.url;
+      videoPlayer.load();
+      videoPlayer.play();
+
+      document.querySelector('.video-info').hidden = false;
+
+      const videoTitle = document.querySelector('#video-title');
+      videoTitle.textContent = video.description || 'Видео без описания';
+      if (!video.description) videoTitle.classList.add('video-title--empty');
+      else videoTitle.classList.remove('video-title--empty');
+
+      const videoDate = document.querySelector('#video-date');
+      videoDate.textContent = video.upload_date;
+
+      const videoAuthor = document.querySelector('#video-author');
+      videoAuthor.textContent = video.username;
+
+      const videoAuthorStatus = document.querySelector('#video-author-status');
+      videoAuthorStatus.textContent = video.status;
+    }
+
+    function createVideoItemElement(video) {
+      const itemElement = document.createElement('button');
+      itemElement.classList.add('video-item');
+
+      const id = document.createElement('div');
+      id.classList.add('video-item__id');
+      id.textContent = `id: ${video.id}`;
+      itemElement.appendChild(id);
+
+      const description = document.createElement('div');
+      description.classList.add('video-item__description');
+      description.textContent = video.description || 'Видео без описания';
+      if (!video.description) description.classList.add('video-item__description--empty');
+      itemElement.appendChild(description);
+
+      const author = document.createElement('div');
+      author.classList.add('video-item__author');
+      author.textContent = video.author;
+      itemElement.appendChild(author);
+
+      itemElement.addEventListener('click', () => playVideo(video.id));
+
+      return itemElement;
+    }
+
+    async function updateVideos() {
+      document.querySelector('.video-info').hidden = true;
+      document.querySelector('#video').src = '';
+
+      const videosContainer = document.querySelector('#videos');
+      videosContainer.innerHTML = '';
+
+      const videos = await getVideos();
+
+      for (const video of videos) {
+        const videoItemElement = createVideoItemElement(video);
+        videosContainer.appendChild(videoItemElement);
+      }
+    }
+
+    document.querySelector('#video-edit').addEventListener('click', () => editVideo(selectedVideoId));
+    document.querySelector('#video-delete').addEventListener('click', () => deleteVideo(selectedVideoId));
+
+    window.addEventListener('DOMContentLoaded', updateVideos);
+  </script>
+</body>
+
+</html>

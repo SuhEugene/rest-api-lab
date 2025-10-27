@@ -31,30 +31,30 @@ const authors = [
   },
   {
     username: "Thomas",
-    status: "Active"
+    status: null
   },
   {
     username: "John",
-    status: "Active"
+    status: "Busy"
   },
 ];
 
 const videos = [
   {
     author: 1,
-    description: "A serene glade at sunset",
-    url: "https://cdn.coverr.co/videos/coverr-glade-at-sunset-9764/720p.mp4",
+    description: "Закат солнца в лесу",
+    url: "/vids/vid1.webm",
     upload_date: "2023-01-01"
   },
   {
     author: 2,
-    description: "A breathtaking sunset over the Atlantic Ocean",
-    url: "https://cdn.coverr.co/videos/coverr-sunset-over-the-atlantic-ocean-1409/720p.mp4",
+    url: "/vids/vid2.webm",
     upload_date: "2024-02-02"
   },
   {
     author: 3,
-    url: "https://cdn.coverr.co/videos/coverr-woman-running-outdoors-3013/720p.mp4",
+    description: "Пролёт по зимнему лесу",
+    url: "/vids/vid3.webm",
     upload_date: "2025-03-03"
   },
 ];

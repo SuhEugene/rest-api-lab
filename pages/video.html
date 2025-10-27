@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video</title>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <form hidden>
+    <div>
+      <label for="title">Описание</label>
+      <input type="text" name="title" placeholder="Полёт по зимнему лесу" required autofocus autocomplete="off">
+    </div>
+    <div>
+      <label for="author">Автор</label>
+      <select name="author" required></select>
+    </div>
+    <div>
+      <label for="url">URL</label>
+      <input type="text" name="url" placeholder="/vids/vid1.webm" required autocomplete="off">
+    </div>
+    <div>
+      <button class="btn" type="submit">Добавить</button>
+      <button class="btn" type="button" onclick="window.location.assign('/')">Назад</button>
+    </div>
+  </form>
+  <script>
+    const action = "%%ACTION%%";
+    const form = document.querySelector('form');
+
+    async function getAuthors() {
+      const response = await fetch('/api/authors');
+      const data = await response.json();
+      return data;
+    }
+
+    async function updateAuthors(authors) {
+      const select = form.querySelector('[name="author"]');
+      select.innerHTML = '';
+      const firstOption = document.createElement('option');
+      firstOption.value = '';
+      firstOption.textContent = 'Выберите автора';
+      firstOption.disabled = true;
+      firstOption.selected = true;
+      select.appendChild(firstOption);
+
+      for (const author of authors) {
+        const option = document.createElement('option');
+        option.value = author.id;
+        option.textContent = `${author.username}` + (author.status ? ` - ${author.status}` : '');
+        select.appendChild(option);
+      }
+    }
+
+    async function getVideo(id) {
+      const video = await fetch(`/api/videos/${id}`);
+      const data = await video.json();
+      return data;
+    }
+
+    async function updateForm(video) {
+      form.querySelector('[name="title"]').value = video.description;
+      form.querySelector('[name="author"]').value = video.author_id;
+      form.querySelector('[name="url"]').value = video.url;
+    }
+
+    async function syncAuthors() {
+      const authors = await getAuthors();
+      updateAuthors(authors);
+    }
+
+    async function syncVideo() {
+      const videoId = parseInt(window.location.pathname.split('/').pop(), 10);
+      if (!videoId) return;
+
+      const video = await getVideo(videoId);
+      updateForm(video);
+    }
+
+    async function sync() {
+      await syncAuthors();
+      if (action !== 'new') {
+        document.querySelector('button[type="submit"]').innerHTML = 'Сохранить';
+        await syncVideo();
+      }
+      form.hidden = false;
+    }
+
+    async function submitForm(event) {
+      event.preventDefault();
+
+      const form = document.querySelector('form');
+      const body = new FormData(form);
+      let method = 'POST';
+      let url = '/api/videos';
+      if (action !== 'new') {
+        method = 'PUT';
+        url = '/api/videos/' + action;
+      }
+      const response = await fetch(url, {
+        method,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          author: Number(body.get('author')),
+          description: body.get('title'),
+          url: body.get('url')
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        form.removeAttribute('hidden');
+        updateForm(data.data);
+        window.location.assign('/');
+      } else {
+        alert(data.error);
+      }
+    }
+    form.addEventListener('submit', submitForm);
+
+    window.addEventListener('DOMContentLoaded', sync);
+  </script>
+</body>
+
+</html>
