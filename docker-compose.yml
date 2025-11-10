@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    ports:
+      - "3000:80"
+    volumes:
+      - dbdata:/app/db:z
+
+volumes:
+  dbdata:
+    driver: local

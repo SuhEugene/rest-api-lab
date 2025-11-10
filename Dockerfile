@@ -18,7 +18,7 @@ COPY *.js /app/
 COPY pages /app/pages
 COPY vids /app/vids
 
-VOLUME videos.db
+VOLUME ["/app/db"]
 
 RUN node seed.js
 
